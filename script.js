@@ -1,36 +1,39 @@
-let players = [];
+const gameContainer = document.getElementById('game-container');
+const basket = document.getElementById('basket');
 
-function addPlayer() {
-    const name = prompt("Enter player name:");
-    if (name) {
-        players.push(name);
-        updatePlayerList();
+let basketX = gameContainer.clientWidth / 2 - basket.clientWidth / 2;
+let score = 0;
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft' && basketX > 0) {
+        basketX -= 20;
+    } else if (e.key === 'ArrowRight' && basketX < gameContainer.clientWidth - basket.clientWidth) {
+        basketX += 20;
     }
-}
+    basket.style.left = `${basketX}px`;
+});
 
-function updatePlayerList() {
-    const playersDiv = document.getElementById("players");
-    playersDiv.innerHTML = "<h3>Players:</h3>";
-    players.forEach((player, index) => {
-        playersDiv.innerHTML += `<div class="player">${index + 1}. ${player}</div>`;
-    });
-}
+function createBall() {
+    const ball = document.createElement('div');
+    ball.classList.add('ball');
+    ball.style.left = `${Math.random() * (gameContainer.clientWidth - 20)}px`;
+    gameContainer.appendChild(ball);
 
-function generateBracket() {
-    if (players.length < 2) {
-        alert("At least two players are needed to generate a bracket.");
-        return;
-    }
-
-    let shuffledPlayers = [...players].sort(() => Math.random() - 0.5);
-    let bracketDiv = document.getElementById("bracket");
-    bracketDiv.innerHTML = "<h3>Tournament Bracket:</h3>";
-
-    for (let i = 0; i < shuffledPlayers.length; i += 2) {
-        if (i + 1 < shuffledPlayers.length) {
-            bracketDiv.innerHTML += `<div>${shuffledPlayers[i]} vs ${shuffledPlayers[i + 1]}</div>`;
+    let fallInterval = setInterval(() => {
+        let ballTop = parseInt(getComputedStyle(ball).top) || 0;
+        if (ballTop > gameContainer.clientHeight - 40 && 
+            ball.offsetLeft > basketX && 
+            ball.offsetLeft < basketX + basket.clientWidth) {
+            score++;
+            clearInterval(fallInterval);
+            ball.remove();
+        } else if (ballTop > gameContainer.clientHeight) {
+            clearInterval(fallInterval);
+            ball.remove();
         } else {
-            bracketDiv.innerHTML += `<div>${shuffledPlayers[i]} (bye)</div>`;
+            ball.style.top = `${ballTop + 5}px`;
         }
-    }
+    }, 50);
 }
+
+setInterval(createBall, 1000);
